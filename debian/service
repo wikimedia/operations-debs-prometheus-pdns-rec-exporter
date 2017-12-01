@@ -1,0 +1,10 @@
+[Unit]
+Description=Prometheus PowerDNS Recursor Exporter
+
+[Service]
+Restart=always
+User=prometheus
+ExecStart=/usr/bin/prometheus-pdns-rec-exporter
+
+[Install]
+WantedBy=multi-user.target
