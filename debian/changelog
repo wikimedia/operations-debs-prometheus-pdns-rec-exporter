@@ -1,3 +1,9 @@
+prometheus-pdns-rec-exporter (0.2) jessie-wikimedia; urgency=medium
+
+  * Fix GaugeMetricFamily names
+
+ -- Moritz Muehlenhoff <mmuhlenhoff@wikimedia.org>  Wed, 13 Dec 2017 14:05:30 +0100
+
 prometheus-pdns-rec-exporter (0.1) jessie-wikimedia; urgency=medium
 
   * Initial release
