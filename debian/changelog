@@ -1,3 +1,9 @@
+prometheus-pdns-rec-exporter (0.3) jessie-wikimedia; urgency=medium
+
+  * Rename metrics prefix to use pdns_rec instead of pdns_
+
+ -- Moritz Muehlenhoff <mmuhlenhoff@wikimedia.org>  Fri, 15 Dec 2017 10:29:41 +0100
+
 prometheus-pdns-rec-exporter (0.2) jessie-wikimedia; urgency=medium
 
   * Fix GaugeMetricFamily names
