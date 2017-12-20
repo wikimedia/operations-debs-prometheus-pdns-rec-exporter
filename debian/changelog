@@ -1,3 +1,9 @@
+prometheus-pdns-rec-exporter (0.4) jessie-wikimedia; urgency=medium
+
+  * Add upstart job, we now also need the exporter on labservices1001/trusty
+
+ -- Moritz Muehlenhoff <mmuhlenhoff@wikimedia.org>  Wed, 20 Dec 2017 15:37:01 +0100
+
 prometheus-pdns-rec-exporter (0.3) jessie-wikimedia; urgency=medium
 
   * Rename metrics prefix to use pdns_rec instead of pdns_
