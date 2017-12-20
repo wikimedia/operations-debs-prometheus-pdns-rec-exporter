@@ -1,3 +1,9 @@
+prometheus-pdns-rec-exporter (0.5) jessie-wikimedia; urgency=medium
+
+  * Parse two additional metrics (used by the PDNS recursor in WMCS)
+
+ -- Moritz Muehlenhoff <mmuhlenhoff@wikimedia.org>  Wed, 20 Dec 2017 16:02:56 +0100
+
 prometheus-pdns-rec-exporter (0.4) jessie-wikimedia; urgency=medium
 
   * Add upstart job, we now also need the exporter on labservices1001/trusty
