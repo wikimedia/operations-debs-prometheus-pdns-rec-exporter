@@ -177,7 +177,9 @@ class PowerDNSRecursorCollector(object):
                 "pdns_rec_failed_host_entries",
                 "number of servers that failed to resolve",
             ),
-            "fd-usage": GaugeMetricFamily("pdns_rec_fd_usage", ""),
+            "fd-usage": GaugeMetricFamily(
+                "pdns_rec_fd_usage", "number of open file descriptors"
+            ),
             "ignored-packets": GaugeMetricFamily(
                 "pdns_rec_ignored_packets",
                 "counts the number of non-query packets received on server sockets that should only get query packets",
@@ -290,7 +292,9 @@ class PowerDNSRecursorCollector(object):
                 "pdns_rec_questions",
                 "counts all end-user initiated queries with the RD bit set",
             ),
-            "real-memory-usage": GaugeMetricFamily("pdns_rec_real_memory_usage", ""),
+            "real-memory-usage": GaugeMetricFamily(
+                "pdns_rec_real_memory_usage", "real memory usage"
+            ),
             "resource-limits": GaugeMetricFamily(
                 "pdns_rec_resource_limits",
                 "counts number of queries that could not be performed because of resource limits",
@@ -343,10 +347,18 @@ class PowerDNSRecursorCollector(object):
             "too-old-drops": GaugeMetricFamily(
                 "pdns_rec_too_old_drops", "questions dropped that were too old"
             ),
-            "udp-in-errors": GaugeMetricFamily("pdns_rec_udp_in_errors", ""),
-            "udp-noport-errors": GaugeMetricFamily("pdns_rec_udp_noport_errors", ""),
-            "udp-recvbuf-errors": GaugeMetricFamily("pdns_rec_udp_recvbuf_errors", ""),
-            "udp-sndbuf-errors": GaugeMetricFamily("pdns_rec_udp_sndbuf_errors", ""),
+            "udp-in-errors": GaugeMetricFamily(
+                "pdns_rec_udp_in_errors", "inbound udp errors"
+            ),
+            "udp-noport-errors": GaugeMetricFamily(
+                "pdns_rec_udp_noport_errors", "udp no port errors"
+            ),
+            "udp-recvbuf-errors": GaugeMetricFamily(
+                "pdns_rec_udp_recvbuf_errors", "udp receive buffer errors"
+            ),
+            "udp-sndbuf-errors": GaugeMetricFamily(
+                "pdns_rec_udp_sndbuf_errors", "udp send buffer errors"
+            ),
             "unauthorized-tcp": GaugeMetricFamily(
                 "pdns_rec_unauthorized_tcp",
                 "number of TCP questions denied because of allow-from restrictions",
