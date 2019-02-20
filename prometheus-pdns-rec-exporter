@@ -16,118 +16,359 @@
 
 import argparse
 import logging
+import subprocess
 import sys
 import time
-import subprocess
 
-from prometheus_client import start_http_server, Summary
-from prometheus_client.core import (CounterMetricFamily, GaugeMetricFamily,
-                                    REGISTRY)
+from prometheus_client import Summary, start_http_server
+from prometheus_client.core import REGISTRY, CounterMetricFamily, GaugeMetricFamily
 
 log = logging.getLogger(__name__)
 
 
 class PowerDNSRecursorCollector(object):
     scrape_duration = Summary(
-            'pdns_rec_scrape_duration_seconds', 'PowerDNS recursor scrape duration')
+        "pdns_rec_scrape_duration_seconds", "PowerDNS recursor scrape duration"
+    )
 
     @scrape_duration.time()
     def collect(self):
-        stats = subprocess.check_output(['sudo', 'rec_control', 'get-all'])
+        stats = subprocess.check_output(["sudo", "rec_control", "get-all"])
 
         metrics = {
-            'all-outqueries': GaugeMetricFamily('pdns_rec_all_outqueries', 'counts the number of outgoing UDP queries since starting'),
-            'answers-slow': GaugeMetricFamily('pdns_rec_answers_ms_slow', 'counts the number of queries answered after 1 second'),
-            'answers0-1': GaugeMetricFamily('pdns_rec_answers_ms_0_1', 'counts the number of queries answered within 1 millisecond'),
-            'answers1-10': GaugeMetricFamily('pdns_rec_answers_ms_1_10', 'counts the number of queries answered within 10 milliseconds'),
-            'answers10-100': GaugeMetricFamily('pdns_rec_answers_ms_10_100', 'counts the number of queries answered within 100 milliseconds'),
-            'answers100-1000': GaugeMetricFamily('pdns_rec_answers_ms_100_1000', 'counts the number of queries answered within 1 second'),
-            'auth4-answers-slow': GaugeMetricFamily('pdns_rec_auth4_answers_ms_slow', 'counts the number of queries answered by auth4s after 1 second'),
-            'auth4-answers0-1': GaugeMetricFamily('pdns_rec_auth4_answers_ms_0_1', 'counts the number of queries answered by auth4s within 1 millisecond'),
-            'auth4-answers1-10': GaugeMetricFamily('pdns_rec_auth4_answers_ms_1_10', 'counts the number of queries answered by auth4s within 10 milliseconds'),
-            'auth4-answers10-100': GaugeMetricFamily('pdns_rec_auth4_answers_ms_10_100', 'counts the number of queries answered by auth4s within 100 milliseconds'),
-            'auth4-answers100-1000': GaugeMetricFamily('pdns_rec_auth4_answers_ms_100_1000', 'counts the number of queries answered by auth4s within 1 second'),
-            'auth6-answers-slow': GaugeMetricFamily('pdns_rec_auth6_answers_ms_slow', 'counts the number of queries answered by auth6s after 1 second'),
-            'auth6-answers0-1': GaugeMetricFamily('pdns_rec_auth6_answers_ms_0_1', 'counts the number of queries answered by auth6s within 1 millisecond'),
-            'auth6-answers1-10': GaugeMetricFamily('pdns_rec_auth6_answers_ms_1_10', 'counts the number of queries answered by auth6s within 10 milliseconds'),
-            'auth6-answers10-100': GaugeMetricFamily('pdns_rec_auth6_answers_ms_10_100', 'counts the number of queries answered by auth6s within 100 milliseconds'),
-            'auth6-answers100-1000': GaugeMetricFamily('pdns_rec_auth6_answers_ms_100_1000', 'counts the number of queries answered by auth6s within 1 second'),
-            'cache-bytes': GaugeMetricFamily('pdns_rec_cache_bytes', 'size of the cache in bytes'),
-            'cache-entries': GaugeMetricFamily('pdns_rec_cache_entries', 'shows the number of entries in the cache'),
-            'cache-hits': GaugeMetricFamily('pdns_rec_cache_hits', 'counts the number of cache hits since starting, this does not include hits that got answered from the packet-cache'),
-            'cache-misses': GaugeMetricFamily('pdns_rec_cache_misses', 'counts the number of cache misses since starting'),
-            'case-mismatches': GaugeMetricFamily('pdns_rec_case_mismatches', 'counts the number of mismatches in character case since starting'),
-            'chain-resends': GaugeMetricFamily('pdns_rec_chain_resends', 'number of queries chained to existing outstanding query'),
-            'client-parse-errors': GaugeMetricFamily('pdns_rec_client_parse_errors', 'counts number of client packets that could not be parsed'),
-            'concurrent-queries': GaugeMetricFamily('pdns_rec_concurrent_queries', 'shows the number of MThreads currently running'),
-            'dlg-only-drops': GaugeMetricFamily('pdns_rec_dlg_only_drops', 'number of records dropped because of delegation only setting'),
-            'dnssec-queries': GaugeMetricFamily('pdns_rec_dnssec_queries', 'number of queries received with the DO bit set'),
-            'dnssec-result-bogus': GaugeMetricFamily('pdns_rec_dnssec_result_bogus', 'number of DNSSEC validations that had the Bogus state'),
-            'dnssec-result-indeterminate': GaugeMetricFamily('pdns_rec_dnssec_result_indeterminate', 'number of DNSSEC validations that had the Indeterminate state'),
-            'dnssec-result-insecure': GaugeMetricFamily('pdns_rec_dnssec_result_insecure', 'number of DNSSEC validations that had the Insecure state'),
-            'dnssec-result-nta': GaugeMetricFamily('pdns_rec_dnssec_result_nta', 'number of DNSSEC validations that had the NTA (negative trust anchor) state'),
-            'dnssec-result-secure': GaugeMetricFamily('pdns_rec_dnssec_result_secure', 'number of DNSSEC validations that had the Secure state'),
-            'dnssec-validations': GaugeMetricFamily('pdns_rec_dnssec_validations', 'number of DNSSEC validations performed'),
-            'dont-outqueries': GaugeMetricFamily('pdns_rec_dont_outqueries', 'number of outgoing queries dropped because of dont-query setting'),
-            'edns-ping-matches': GaugeMetricFamily('pdns_rec_edns_ping_matches', 'number of servers that sent a valid EDNS PING response'),
-            'edns-ping-mismatches': GaugeMetricFamily('pdns_rec_edns_ping_mismatches', 'number of servers that sent an invalid EDNS PING response'),
-            'failed-host-entries': GaugeMetricFamily('pdns_rec_failed_host_entries', 'number of servers that failed to resolve'),
-            'fd-usage': GaugeMetricFamily('pdns_rec_fd_usage', ''),
-            'ignored-packets': GaugeMetricFamily('pdns_rec_ignored_packets', 'counts the number of non-query packets received on server sockets that should only get query packets'),
-            'ipv6-outqueries': GaugeMetricFamily('pdns_rec_ipv6_outqueries', 'number of outgoing queries over IPv6'),
-            'ipv6-questions': GaugeMetricFamily('pdns_rec_ipv6_questions', 'counts all end-user initiated queries with the RD bit set, received over IPv6 UDP'),
-            'malloc-bytes': GaugeMetricFamily('pdns_rec_malloc_bytes', 'returns the number of bytes allocated by the process (broken, always returns 0)'),
-            'max-mthread-stack': GaugeMetricFamily('pdns_rec_max_mthread_stack', 'maximum amount of thread stack ever used'),
-            'negcache-entries': GaugeMetricFamily('pdns_rec_negcache_entries', 'shows the number of entries in the negative answer cache'),
-            'no-packet-error': GaugeMetricFamily('pdns_rec_no_packet_error', 'number of erroneous received packets'),
-            'noedns-outqueries': GaugeMetricFamily('pdns_rec_noedns_outqueries', 'number of queries sent out without EDNS'),
-            'noerror-answers': GaugeMetricFamily('pdns_rec_noerror_answers', 'counts the number of times it answered NOERROR since starting'),
-            'noping-outqueries': GaugeMetricFamily('pdns_rec_noping_outqueries', 'number of queries sent out without ENDS PING'),
-            'nsset-invalidations': GaugeMetricFamily('pdns_rec_nsset_invalidations', 'number of times an nsset was dropped because it no longer worked'),
-            'nsspeeds-entries': GaugeMetricFamily('pdns_rec_nsspeeds_entries', 'shows the number of entries in the NS speeds map'),
-            'nxdomain-answers': GaugeMetricFamily('pdns_rec_nxdomain_answers', 'counts the number of times it answered NXDOMAIN since starting'),
-            'outgoing-timeouts': GaugeMetricFamily('pdns_rec_outgoing_timeouts', 'counts the number of timeouts on outgoing UDP queries since starting'),
-            'outgoing4-timeouts': GaugeMetricFamily('pdns_rec_outgoing4_timeouts', 'counts the number of timeouts on outgoing UDP IPv4 queries since starting (since 4.0)'),
-            'outgoing6-timeouts': GaugeMetricFamily('pdns_rec_outgoing6_timeouts', 'counts the number of timeouts on outgoing UDP IPv6 queries since starting (since 4.0)'),
-            'over-capacity-drops': GaugeMetricFamily('pdns_rec_over_capacity_drops', 'questions dropped because over maximum concurrent query limit (since 3.2)'),
-            'packetcache-bytes': GaugeMetricFamily('pdns_rec_packetcache_bytes', 'size of the packet cache in bytes'),
-            'packetcache-entries': GaugeMetricFamily('pdns_rec_packetcache_entries', 'size of the packet cache'),
-            'packetcache-hits': GaugeMetricFamily('pdns_rec_packetcache_hits', 'packet cache hits'),
-            'packetcache-misses': GaugeMetricFamily('pdns_rec_packetcache_misses', 'packet cache misses'),
-            'policy-drops': GaugeMetricFamily('pdns_rec_policy_drops ', 'packets dropped because of (Lua) policy decision'),
-            'policy-result-custom': GaugeMetricFamily('pdns_rec_policy_result_custom', 'packets that were sent a custom answer by the RPZ/filter engine'),
-            'policy-result-drop': GaugeMetricFamily('pdns_rec_policy_result_drop', 'packets that were dropped by the RPZ/filter engine'),
-            'policy-result-noaction': GaugeMetricFamily('pdns_rec_policy_result_noaction', 'packets that were not actioned upon by the RPZ/filter engine'),
-            'policy-result-nodata': GaugeMetricFamily('pdns_rec_policy_result_nodata', 'packets that were replied to with no data by the RPZ/filter engine'),
-            'policy-result-nxdomain': GaugeMetricFamily('pdns_rec_policy_result_nxdomain', 'packets that were replied to with NXDOMAIN by the RPZ/filter engine'),
-            'policy-result-truncate': GaugeMetricFamily('pdns_rec_policy_result_truncate', 'packets that were forced to TCP by the RPZ/filter engine'),
-            'qa-latency': GaugeMetricFamily('pdns_rec_qa_latency', 'shows the current latency average, in microseconds, exponentially weighted over past latency-statistic-size packets'),
-            'questions': GaugeMetricFamily('pdns_rec_questions', 'counts all end-user initiated queries with the RD bit set'),
-            'real-memory-usage': GaugeMetricFamily('pdns_rec_real_memory_usage', ''),
-            'resource-limits': GaugeMetricFamily('pdns_rec_resource_limits', 'counts number of queries that could not be performed because of resource limits'),
-            'security-status': GaugeMetricFamily('pdns_rec_security_status', 'security status based on security polling'),
-            'server-parse-errors': GaugeMetricFamily('pdns_rec_server_parse_errors', 'counts number of server replied packets that could not be parsed'),
-            'servfail-answers': GaugeMetricFamily('pdns_rec_servfail_answers', 'counts the number of times it answered SERVFAIL since starting'),
-            'spoof-prevents': GaugeMetricFamily('pdns_rec_spoof_prevents', 'number of times PowerDNS considered itself spoofed, and dropped the data'),
-            'sys-msec': GaugeMetricFamily('pdns_rec_sys_msec', 'number of CPU milliseconds spent in system mode'),
-            'tcp-client-overflow': GaugeMetricFamily('pdns_rec_tcp_client_overflow', 'number of times an IP address was denied TCP access because it already had too many connections'),
-            'tcp-clients': GaugeMetricFamily('pdns_rec_tcp_clients', 'counts the number of currently active TCP/IP clients'),
-            'tcp-outqueries': GaugeMetricFamily('pdns_rec_tcp_outqueries', 'counts the number of outgoing TCP queries since starting'),
-            'tcp-questions': GaugeMetricFamily('pdns_rec_tcp_questions', 'counts all incoming TCP queries (since starting)'),
-            'throttle-entries': GaugeMetricFamily('pdns_rec_throttle_entries', 'shows the number of entries in the throttle map'),
-            'throttled-out': GaugeMetricFamily('pdns_rec_throttled_out', 'counts the number of throttled outgoing UDP queries since starting'),
-            'throttled-outqueries': GaugeMetricFamily('pdns_rec_throttled_outqueries', 'idem to throttled-out'),
-            'too-old-drops': GaugeMetricFamily('pdns_rec_too_old_drops', 'questions dropped that were too old'),
-            'udp-in-errors': GaugeMetricFamily('pdns_rec_udp_in_errors', ''),
-            'udp-noport-errors': GaugeMetricFamily('pdns_rec_udp_noport_errors', ''),
-            'udp-recvbuf-errors': GaugeMetricFamily('pdns_rec_udp_recvbuf_errors', ''),
-            'udp-sndbuf-errors': GaugeMetricFamily('pdns_rec_udp_sndbuf_errors', ''),
-            'unauthorized-tcp': GaugeMetricFamily('pdns_rec_unauthorized_tcp', 'number of TCP questions denied because of allow-from restrictions'),
-            'unauthorized-udp': GaugeMetricFamily('pdns_rec_unauthorized_udp', 'number of UDP questions denied because of allow-from restrictions'),
-            'unexpected-packets': GaugeMetricFamily('pdns_rec_unexpected_packets', 'number of answers from remote servers that were unexpected (might point to spoofing)'),
-            'unreachables': GaugeMetricFamily('pdns_rec_unreachables', 'number of times nameservers were unreachable since starting'),
-            'uptime': GaugeMetricFamily('pdns_rec_uptime', 'number of seconds process has been running'),
-            'user-msec': GaugeMetricFamily('pdns_rec_user_msec', 'number of CPU milliseconds spent in user mode'),
+            "all-outqueries": GaugeMetricFamily(
+                "pdns_rec_all_outqueries",
+                "counts the number of outgoing UDP queries since starting",
+            ),
+            "answers-slow": GaugeMetricFamily(
+                "pdns_rec_answers_ms_slow",
+                "counts the number of queries answered after 1 second",
+            ),
+            "answers0-1": GaugeMetricFamily(
+                "pdns_rec_answers_ms_0_1",
+                "counts the number of queries answered within 1 millisecond",
+            ),
+            "answers1-10": GaugeMetricFamily(
+                "pdns_rec_answers_ms_1_10",
+                "counts the number of queries answered within 10 milliseconds",
+            ),
+            "answers10-100": GaugeMetricFamily(
+                "pdns_rec_answers_ms_10_100",
+                "counts the number of queries answered within 100 milliseconds",
+            ),
+            "answers100-1000": GaugeMetricFamily(
+                "pdns_rec_answers_ms_100_1000",
+                "counts the number of queries answered within 1 second",
+            ),
+            "auth4-answers-slow": GaugeMetricFamily(
+                "pdns_rec_auth4_answers_ms_slow",
+                "counts the number of queries answered by auth4s after 1 second",
+            ),
+            "auth4-answers0-1": GaugeMetricFamily(
+                "pdns_rec_auth4_answers_ms_0_1",
+                "counts the number of queries answered by auth4s within 1 millisecond",
+            ),
+            "auth4-answers1-10": GaugeMetricFamily(
+                "pdns_rec_auth4_answers_ms_1_10",
+                "counts the number of queries answered by auth4s within 10 milliseconds",
+            ),
+            "auth4-answers10-100": GaugeMetricFamily(
+                "pdns_rec_auth4_answers_ms_10_100",
+                "counts the number of queries answered by auth4s within 100 milliseconds",
+            ),
+            "auth4-answers100-1000": GaugeMetricFamily(
+                "pdns_rec_auth4_answers_ms_100_1000",
+                "counts the number of queries answered by auth4s within 1 second",
+            ),
+            "auth6-answers-slow": GaugeMetricFamily(
+                "pdns_rec_auth6_answers_ms_slow",
+                "counts the number of queries answered by auth6s after 1 second",
+            ),
+            "auth6-answers0-1": GaugeMetricFamily(
+                "pdns_rec_auth6_answers_ms_0_1",
+                "counts the number of queries answered by auth6s within 1 millisecond",
+            ),
+            "auth6-answers1-10": GaugeMetricFamily(
+                "pdns_rec_auth6_answers_ms_1_10",
+                "counts the number of queries answered by auth6s within 10 milliseconds",
+            ),
+            "auth6-answers10-100": GaugeMetricFamily(
+                "pdns_rec_auth6_answers_ms_10_100",
+                "counts the number of queries answered by auth6s within 100 milliseconds",
+            ),
+            "auth6-answers100-1000": GaugeMetricFamily(
+                "pdns_rec_auth6_answers_ms_100_1000",
+                "counts the number of queries answered by auth6s within 1 second",
+            ),
+            "cache-bytes": GaugeMetricFamily(
+                "pdns_rec_cache_bytes", "size of the cache in bytes"
+            ),
+            "cache-entries": GaugeMetricFamily(
+                "pdns_rec_cache_entries", "shows the number of entries in the cache"
+            ),
+            "cache-hits": GaugeMetricFamily(
+                "pdns_rec_cache_hits",
+                "counts the number of cache hits since starting, this does not include hits that got answered from the packet-cache",
+            ),
+            "cache-misses": GaugeMetricFamily(
+                "pdns_rec_cache_misses",
+                "counts the number of cache misses since starting",
+            ),
+            "case-mismatches": GaugeMetricFamily(
+                "pdns_rec_case_mismatches",
+                "counts the number of mismatches in character case since starting",
+            ),
+            "chain-resends": GaugeMetricFamily(
+                "pdns_rec_chain_resends",
+                "number of queries chained to existing outstanding query",
+            ),
+            "client-parse-errors": GaugeMetricFamily(
+                "pdns_rec_client_parse_errors",
+                "counts number of client packets that could not be parsed",
+            ),
+            "concurrent-queries": GaugeMetricFamily(
+                "pdns_rec_concurrent_queries",
+                "shows the number of MThreads currently running",
+            ),
+            "dlg-only-drops": GaugeMetricFamily(
+                "pdns_rec_dlg_only_drops",
+                "number of records dropped because of delegation only setting",
+            ),
+            "dnssec-queries": GaugeMetricFamily(
+                "pdns_rec_dnssec_queries",
+                "number of queries received with the DO bit set",
+            ),
+            "dnssec-result-bogus": GaugeMetricFamily(
+                "pdns_rec_dnssec_result_bogus",
+                "number of DNSSEC validations that had the Bogus state",
+            ),
+            "dnssec-result-indeterminate": GaugeMetricFamily(
+                "pdns_rec_dnssec_result_indeterminate",
+                "number of DNSSEC validations that had the Indeterminate state",
+            ),
+            "dnssec-result-insecure": GaugeMetricFamily(
+                "pdns_rec_dnssec_result_insecure",
+                "number of DNSSEC validations that had the Insecure state",
+            ),
+            "dnssec-result-nta": GaugeMetricFamily(
+                "pdns_rec_dnssec_result_nta",
+                "number of DNSSEC validations that had the NTA (negative trust anchor) state",
+            ),
+            "dnssec-result-secure": GaugeMetricFamily(
+                "pdns_rec_dnssec_result_secure",
+                "number of DNSSEC validations that had the Secure state",
+            ),
+            "dnssec-validations": GaugeMetricFamily(
+                "pdns_rec_dnssec_validations", "number of DNSSEC validations performed"
+            ),
+            "dont-outqueries": GaugeMetricFamily(
+                "pdns_rec_dont_outqueries",
+                "number of outgoing queries dropped because of dont-query setting",
+            ),
+            "edns-ping-matches": GaugeMetricFamily(
+                "pdns_rec_edns_ping_matches",
+                "number of servers that sent a valid EDNS PING response",
+            ),
+            "edns-ping-mismatches": GaugeMetricFamily(
+                "pdns_rec_edns_ping_mismatches",
+                "number of servers that sent an invalid EDNS PING response",
+            ),
+            "failed-host-entries": GaugeMetricFamily(
+                "pdns_rec_failed_host_entries",
+                "number of servers that failed to resolve",
+            ),
+            "fd-usage": GaugeMetricFamily("pdns_rec_fd_usage", ""),
+            "ignored-packets": GaugeMetricFamily(
+                "pdns_rec_ignored_packets",
+                "counts the number of non-query packets received on server sockets that should only get query packets",
+            ),
+            "ipv6-outqueries": GaugeMetricFamily(
+                "pdns_rec_ipv6_outqueries", "number of outgoing queries over IPv6"
+            ),
+            "ipv6-questions": GaugeMetricFamily(
+                "pdns_rec_ipv6_questions",
+                "counts all end-user initiated queries with the RD bit set, received over IPv6 UDP",
+            ),
+            "malloc-bytes": GaugeMetricFamily(
+                "pdns_rec_malloc_bytes",
+                "returns the number of bytes allocated by the process (broken, always returns 0)",
+            ),
+            "max-mthread-stack": GaugeMetricFamily(
+                "pdns_rec_max_mthread_stack", "maximum amount of thread stack ever used"
+            ),
+            "negcache-entries": GaugeMetricFamily(
+                "pdns_rec_negcache_entries",
+                "shows the number of entries in the negative answer cache",
+            ),
+            "no-packet-error": GaugeMetricFamily(
+                "pdns_rec_no_packet_error", "number of erroneous received packets"
+            ),
+            "noedns-outqueries": GaugeMetricFamily(
+                "pdns_rec_noedns_outqueries", "number of queries sent out without EDNS"
+            ),
+            "noerror-answers": GaugeMetricFamily(
+                "pdns_rec_noerror_answers",
+                "counts the number of times it answered NOERROR since starting",
+            ),
+            "noping-outqueries": GaugeMetricFamily(
+                "pdns_rec_noping_outqueries",
+                "number of queries sent out without ENDS PING",
+            ),
+            "nsset-invalidations": GaugeMetricFamily(
+                "pdns_rec_nsset_invalidations",
+                "number of times an nsset was dropped because it no longer worked",
+            ),
+            "nsspeeds-entries": GaugeMetricFamily(
+                "pdns_rec_nsspeeds_entries",
+                "shows the number of entries in the NS speeds map",
+            ),
+            "nxdomain-answers": GaugeMetricFamily(
+                "pdns_rec_nxdomain_answers",
+                "counts the number of times it answered NXDOMAIN since starting",
+            ),
+            "outgoing-timeouts": GaugeMetricFamily(
+                "pdns_rec_outgoing_timeouts",
+                "counts the number of timeouts on outgoing UDP queries since starting",
+            ),
+            "outgoing4-timeouts": GaugeMetricFamily(
+                "pdns_rec_outgoing4_timeouts",
+                "counts the number of timeouts on outgoing UDP IPv4 queries since starting (since 4.0)",
+            ),
+            "outgoing6-timeouts": GaugeMetricFamily(
+                "pdns_rec_outgoing6_timeouts",
+                "counts the number of timeouts on outgoing UDP IPv6 queries since starting (since 4.0)",
+            ),
+            "over-capacity-drops": GaugeMetricFamily(
+                "pdns_rec_over_capacity_drops",
+                "questions dropped because over maximum concurrent query limit (since 3.2)",
+            ),
+            "packetcache-bytes": GaugeMetricFamily(
+                "pdns_rec_packetcache_bytes", "size of the packet cache in bytes"
+            ),
+            "packetcache-entries": GaugeMetricFamily(
+                "pdns_rec_packetcache_entries", "size of the packet cache"
+            ),
+            "packetcache-hits": GaugeMetricFamily(
+                "pdns_rec_packetcache_hits", "packet cache hits"
+            ),
+            "packetcache-misses": GaugeMetricFamily(
+                "pdns_rec_packetcache_misses", "packet cache misses"
+            ),
+            "policy-drops": GaugeMetricFamily(
+                "pdns_rec_policy_drops ",
+                "packets dropped because of (Lua) policy decision",
+            ),
+            "policy-result-custom": GaugeMetricFamily(
+                "pdns_rec_policy_result_custom",
+                "packets that were sent a custom answer by the RPZ/filter engine",
+            ),
+            "policy-result-drop": GaugeMetricFamily(
+                "pdns_rec_policy_result_drop",
+                "packets that were dropped by the RPZ/filter engine",
+            ),
+            "policy-result-noaction": GaugeMetricFamily(
+                "pdns_rec_policy_result_noaction",
+                "packets that were not actioned upon by the RPZ/filter engine",
+            ),
+            "policy-result-nodata": GaugeMetricFamily(
+                "pdns_rec_policy_result_nodata",
+                "packets that were replied to with no data by the RPZ/filter engine",
+            ),
+            "policy-result-nxdomain": GaugeMetricFamily(
+                "pdns_rec_policy_result_nxdomain",
+                "packets that were replied to with NXDOMAIN by the RPZ/filter engine",
+            ),
+            "policy-result-truncate": GaugeMetricFamily(
+                "pdns_rec_policy_result_truncate",
+                "packets that were forced to TCP by the RPZ/filter engine",
+            ),
+            "qa-latency": GaugeMetricFamily(
+                "pdns_rec_qa_latency",
+                "shows the current latency average, in microseconds, exponentially weighted over past latency-statistic-size packets",
+            ),
+            "questions": GaugeMetricFamily(
+                "pdns_rec_questions",
+                "counts all end-user initiated queries with the RD bit set",
+            ),
+            "real-memory-usage": GaugeMetricFamily("pdns_rec_real_memory_usage", ""),
+            "resource-limits": GaugeMetricFamily(
+                "pdns_rec_resource_limits",
+                "counts number of queries that could not be performed because of resource limits",
+            ),
+            "security-status": GaugeMetricFamily(
+                "pdns_rec_security_status", "security status based on security polling"
+            ),
+            "server-parse-errors": GaugeMetricFamily(
+                "pdns_rec_server_parse_errors",
+                "counts number of server replied packets that could not be parsed",
+            ),
+            "servfail-answers": GaugeMetricFamily(
+                "pdns_rec_servfail_answers",
+                "counts the number of times it answered SERVFAIL since starting",
+            ),
+            "spoof-prevents": GaugeMetricFamily(
+                "pdns_rec_spoof_prevents",
+                "number of times PowerDNS considered itself spoofed, and dropped the data",
+            ),
+            "sys-msec": GaugeMetricFamily(
+                "pdns_rec_sys_msec", "number of CPU milliseconds spent in system mode"
+            ),
+            "tcp-client-overflow": GaugeMetricFamily(
+                "pdns_rec_tcp_client_overflow",
+                "number of times an IP address was denied TCP access because it already had too many connections",
+            ),
+            "tcp-clients": GaugeMetricFamily(
+                "pdns_rec_tcp_clients",
+                "counts the number of currently active TCP/IP clients",
+            ),
+            "tcp-outqueries": GaugeMetricFamily(
+                "pdns_rec_tcp_outqueries",
+                "counts the number of outgoing TCP queries since starting",
+            ),
+            "tcp-questions": GaugeMetricFamily(
+                "pdns_rec_tcp_questions",
+                "counts all incoming TCP queries (since starting)",
+            ),
+            "throttle-entries": GaugeMetricFamily(
+                "pdns_rec_throttle_entries",
+                "shows the number of entries in the throttle map",
+            ),
+            "throttled-out": GaugeMetricFamily(
+                "pdns_rec_throttled_out",
+                "counts the number of throttled outgoing UDP queries since starting",
+            ),
+            "throttled-outqueries": GaugeMetricFamily(
+                "pdns_rec_throttled_outqueries", "idem to throttled-out"
+            ),
+            "too-old-drops": GaugeMetricFamily(
+                "pdns_rec_too_old_drops", "questions dropped that were too old"
+            ),
+            "udp-in-errors": GaugeMetricFamily("pdns_rec_udp_in_errors", ""),
+            "udp-noport-errors": GaugeMetricFamily("pdns_rec_udp_noport_errors", ""),
+            "udp-recvbuf-errors": GaugeMetricFamily("pdns_rec_udp_recvbuf_errors", ""),
+            "udp-sndbuf-errors": GaugeMetricFamily("pdns_rec_udp_sndbuf_errors", ""),
+            "unauthorized-tcp": GaugeMetricFamily(
+                "pdns_rec_unauthorized_tcp",
+                "number of TCP questions denied because of allow-from restrictions",
+            ),
+            "unauthorized-udp": GaugeMetricFamily(
+                "pdns_rec_unauthorized_udp",
+                "number of UDP questions denied because of allow-from restrictions",
+            ),
+            "unexpected-packets": GaugeMetricFamily(
+                "pdns_rec_unexpected_packets",
+                "number of answers from remote servers that were unexpected (might point to spoofing)",
+            ),
+            "unreachables": GaugeMetricFamily(
+                "pdns_rec_unreachables",
+                "number of times nameservers were unreachable since starting",
+            ),
+            "uptime": GaugeMetricFamily(
+                "pdns_rec_uptime", "number of seconds process has been running"
+            ),
+            "user-msec": GaugeMetricFamily(
+                "pdns_rec_user_msec", "number of CPU milliseconds spent in user mode"
+            ),
         }
 
         for line in stats.splitlines():
@@ -135,14 +376,13 @@ class PowerDNSRecursorCollector(object):
             metric_family = metrics.get(metric_name)
 
             if metric_name is None:
-                print unknown
-                log.warn('Unknown metric %r from line %r', metric_name, line)
+                log.warn("Unknown metric %r from line %r", metric_name, line)
                 continue
 
             try:
                 value = float(value)
             except ValueError:
-                value = float('nan')
+                value = float("nan")
             metric_family.add_metric([], value)
 
         for metric in metrics.values():
@@ -151,10 +391,16 @@ class PowerDNSRecursorCollector(object):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-l', '--listen', metavar='ADDRESS',
-                        help='Listen on this address', default=':9199')
-    parser.add_argument('-d', '--debug', action='store_true',
-                        help='Enable debug logging')
+    parser.add_argument(
+        "-l",
+        "--listen",
+        metavar="ADDRESS",
+        help="Listen on this address",
+        default=":9199",
+    )
+    parser.add_argument(
+        "-d", "--debug", action="store_true", help="Enable debug logging"
+    )
     args = parser.parse_args()
 
     if args.debug:
@@ -162,9 +408,9 @@ def main():
     else:
         logging.basicConfig(level=logging.WARNING)
 
-    address, port = args.listen.split(':', 1)
+    address, port = args.listen.split(":", 1)
 
-    log.info('Starting pdns_recursor_exporter on %s:%s', address, port)
+    log.info("Starting pdns_recursor_exporter on %s:%s", address, port)
 
     REGISTRY.register(PowerDNSRecursorCollector())
     start_http_server(int(port), addr=address)
