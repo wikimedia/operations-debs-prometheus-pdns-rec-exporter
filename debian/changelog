@@ -1,3 +1,9 @@
+prometheus-pdns-rec-exporter (0.6) jessie-wikimedia; urgency=medium
+
+  * Add missing metrics help text, required for prometheus 2.0
+
+ -- Filippo Giunchedi <filippo@wikimedia.org>  Wed, 20 Feb 2019 16:20:34 +0100
+
 prometheus-pdns-rec-exporter (0.5) jessie-wikimedia; urgency=medium
 
   * Parse two additional metrics (used by the PDNS recursor in WMCS)
