@@ -257,7 +257,7 @@ class PowerDNSRecursorCollector(object):
                 "pdns_rec_packetcache_misses", "packet cache misses"
             ),
             "policy-drops": GaugeMetricFamily(
-                "pdns_rec_policy_drops ",
+                "pdns_rec_policy_drops",
                 "packets dropped because of (Lua) policy decision",
             ),
             "policy-result-custom": GaugeMetricFamily(
