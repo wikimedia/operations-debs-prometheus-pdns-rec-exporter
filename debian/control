@@ -7,6 +7,6 @@ Standards-Version: 3.9.8
 
 Package: prometheus-pdns-rec-exporter
 Architecture: all
-Depends: python-prometheus-client, ${misc:Depends}
+Depends: python-prometheus-client, ${misc:Depends}, ${python:Depends}
 Description: Prometheus exporter for PowerDNS Recursor
  Prometheus exporter for PowerPNS Recursor server metrics.
