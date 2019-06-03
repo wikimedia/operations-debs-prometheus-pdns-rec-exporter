@@ -1,3 +1,16 @@
+prometheus-pdns-rec-exporter (0.7) stretch-wikimedia; urgency=medium
+
+  [ Filippo Giunchedi ]
+  * [49c4381] Fix invalid metric name
+
+  [ Arturo Borrero Gonzalez ]
+  * [6ce51f7] d/postinst: specify /nonexistent dir as home
+  * [a6a81ee] d/control: specify python depends
+  * [9fe413d] d/rules: prevent dh_installinit from installing sysvinit files
+  * [bbe5fe5] d/: drop upstart file
+
+ -- Arturo Borrero Gonzalez <aborrero@wikimedia.org>  Mon, 03 Jun 2019 14:47:06 +0200
+
 prometheus-pdns-rec-exporter (0.6) jessie-wikimedia; urgency=medium
 
   * Add missing metrics help text, required for prometheus 2.0
