@@ -2,3 +2,6 @@
 
 %:
 	dh $@ --with systemd,python2 --buildsystem=pybuild
+
+override_dh_installinit:
+        # nothing
