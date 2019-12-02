@@ -1,3 +1,10 @@
+prometheus-pdns-rec-exporter (0.8) buster-wikimedia; urgency=medium
+
+  [ Brandon Black ]
+  * [4754a1d] Add new metrics up through pdns 4.1 for buster
+
+ -- Brandon Black <bblack@wikimedia.org>  Mon, 02 Dec 2019 21:18:34 +0000
+
 prometheus-pdns-rec-exporter (0.7) stretch-wikimedia; urgency=medium
 
   [ Filippo Giunchedi ]
