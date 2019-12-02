@@ -100,6 +100,10 @@ class PowerDNSRecursorCollector(object):
                 "pdns_rec_auth6_answers_ms_100_1000",
                 "counts the number of queries answered by auth6s within 1 second",
             ),
+            "auth-zone-queries": GaugeMetricFamily(
+                "pdns_rec_auth_zone_queries",
+                "counts the number of queries to locally hosted authoritative zones (auth-zones) since starting",
+            ),
             "cache-bytes": GaugeMetricFamily(
                 "pdns_rec_cache_bytes", "size of the cache in bytes"
             ),
@@ -165,6 +169,14 @@ class PowerDNSRecursorCollector(object):
                 "pdns_rec_dont_outqueries",
                 "number of outgoing queries dropped because of dont-query setting",
             ),
+            "ecs-queries": GaugeMetricFamily(
+                "pdns_rec_ecs_queries",
+                "number of outgoing queries adorned with an EDNS Client Subnet option (since 4.1)",
+            ),
+            "ecs-responses": GaugeMetricFamily(
+                "pdns_rec_ecs_responses",
+                "number of responses received from authoritative servers with an EDNS Client Subnet option we used (since 4.1)",
+            ),
             "edns-ping-matches": GaugeMetricFamily(
                 "pdns_rec_edns_ping_matches",
                 "number of servers that sent a valid EDNS PING response",
@@ -195,8 +207,16 @@ class PowerDNSRecursorCollector(object):
                 "pdns_rec_malloc_bytes",
                 "returns the number of bytes allocated by the process (broken, always returns 0)",
             ),
+            "max-cache-entries": GaugeMetricFamily(
+                "pdns_rec_max_cache_entries",
+                "currently configured maximum number of cache entries",
+            ),
             "max-mthread-stack": GaugeMetricFamily(
                 "pdns_rec_max_mthread_stack", "maximum amount of thread stack ever used"
+            ),
+            "max-packetcache-entries": GaugeMetricFamily(
+                "pdns_rec_max_packetcache_entries",
+                "currently configured maximum number of packet cache entries",
             ),
             "negcache-entries": GaugeMetricFamily(
                 "pdns_rec_negcache_entries",
@@ -287,6 +307,10 @@ class PowerDNSRecursorCollector(object):
             "qa-latency": GaugeMetricFamily(
                 "pdns_rec_qa_latency",
                 "shows the current latency average, in microseconds, exponentially weighted over past latency-statistic-size packets",
+            ),
+            "query-pipe-full-drops": GaugeMetricFamily(
+                "pdns_rec_query_pipe_full_drops",
+                "questions dropped because the query distribution pipe was full",
             ),
             "questions": GaugeMetricFamily(
                 "pdns_rec_questions",
@@ -380,6 +404,38 @@ class PowerDNSRecursorCollector(object):
             ),
             "user-msec": GaugeMetricFamily(
                 "pdns_rec_user_msec", "number of CPU milliseconds spent in user mode"
+            ),
+            "x-our-latency": GaugeMetricFamily(
+                "pdns_rec_x_our_latency",
+                "experimental: average latency inside recursor in microseconds, excluding time waiting on authserver",
+            ),
+            "x-ourtime0-1": GaugeMetricFamily(
+                "pdns_rec_x_ourtime_0_1",
+                "experimental: counts responses where between 0 and 1 milliseconds was spent within the recursor",
+            ),
+            "x-ourtime1-2": GaugeMetricFamily(
+                "pdns_rec_x_ourtime_1_2",
+                "experimental: counts responses where between 1 and 2 milliseconds was spent within the recursor",
+            ),
+            "x-ourtime2-4": GaugeMetricFamily(
+                "pdns_rec_x_ourtime_2_4",
+                "experimental: counts responses where between 2 and 4 milliseconds was spent within the recursor",
+            ),
+            "x-ourtime4-8": GaugeMetricFamily(
+                "pdns_rec_x_ourtime_4_8",
+                "experimental: counts responses where between 4 and 8 milliseconds was spent within the recursor",
+            ),
+            "x-ourtime8-16": GaugeMetricFamily(
+                "pdns_rec_x_ourtime_8_16",
+                "experimental: counts responses where between 8 and 16 milliseconds was spent within the recursor",
+            ),
+            "x-ourtime16-32": GaugeMetricFamily(
+                "pdns_rec_x_ourtime_16_32",
+                "experimental: counts responses where between 16 and 32 milliseconds was spent within the recursor",
+            ),
+            "x-ourtime-slow": GaugeMetricFamily(
+                "pdns_rec_x_ourtime_slow",
+                "experimental: counts responses where more than 32 milliseconds was spent within the recursor",
             ),
         }
 
