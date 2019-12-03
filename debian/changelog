@@ -1,3 +1,9 @@
+prometheus-pdns-rec-exporter (0.9) buster-wikimedia; urgency=medium
+
+  * Update systemd unit to bind to pdns-recursor.service
+
+ -- Brandon Black <bblack@wikimedia.org>  Tue, 03 Dec 2019 00:03:46 +0000
+
 prometheus-pdns-rec-exporter (0.8) buster-wikimedia; urgency=medium
 
   [ Brandon Black ]

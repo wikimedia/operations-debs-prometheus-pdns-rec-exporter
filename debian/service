@@ -1,5 +1,7 @@
 [Unit]
 Description=Prometheus PowerDNS Recursor Exporter
+After=pdns-recursor.service
+BindsTo=pdns-recursor.service
 
 [Service]
 Restart=always
